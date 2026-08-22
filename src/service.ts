@@ -46,6 +46,7 @@ export async function createChatService(opts: ChatServiceOptions = {}): Promise<
       kernel,
       env,
       resolvePrincipal: (token) => principals.fromToken(token),
+      resolvePrincipalFromCookie: (cookie) => principals.fromCookie(cookie),
       canJoinChannel: async (principal, _workspaceId, channelId) => {
         if (principal.instanceAdmin || principal.kind === 'service') return true
         if (!principal.userId) return false

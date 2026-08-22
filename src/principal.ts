@@ -9,6 +9,8 @@ import type { FastifyRequest } from 'fastify'
  */
 export interface Principals {
   fromToken(token: string): Promise<Principal>
+  /** resolve the session cookie a browser sends with requests and WebSocket upgrades */
+  fromCookie(cookie: string): Promise<Principal>
   fromRequest(req: FastifyRequest): Promise<Principal>
   invalidate(token?: string): void
 }
@@ -30,8 +32,14 @@ export function createPrincipals(kernel: Kernel, ttlMs = 60_000): Principals {
     return principal
   }
 
+  const fromCookie = (cookie: string): Promise<Principal> => {
+    const match = /(?:^|;\s*)(?:__Secure-)?kern\.session_token=([^;]+)/.exec(cookie)
+    return match?.[1] ? fromToken(decodeURIComponent(match[1])) : Promise.resolve(ANONYMOUS)
+  }
+
   return {
     fromToken,
+    fromCookie,
     async fromRequest(req) {
       const service = req.headers['x-kern-service']
       if (typeof service === 'string') {
@@ -41,10 +49,7 @@ export function createPrincipals(kernel: Kernel, ttlMs = 60_000): Principals {
       const auth = req.headers.authorization
       if (auth?.startsWith('Bearer ')) return fromToken(auth.slice(7))
       const cookie = req.headers.cookie
-      if (cookie) {
-        const match = /(?:^|;\s*)(?:__Secure-)?kern\.session_token=([^;]+)/.exec(cookie)
-        if (match?.[1]) return fromToken(decodeURIComponent(match[1]))
-      }
+      if (cookie) return fromCookie(cookie)
       return ANONYMOUS
     },
     invalidate(token) {

@@ -30,6 +30,8 @@ const sc = StringCodec()
 interface Socket {
   id: string
   ws: WebSocket
+  /** cookie header from the upgrade request, used when the client has no bearer token */
+  cookie: string | null
   principal: Principal
   channels: Set<string>
   seq: number
@@ -54,6 +56,8 @@ export interface GatewayOptions {
   path?: string
   /** resolves a session token into a principal (core service) */
   resolvePrincipal(token: string): Promise<Principal>
+  /** resolves the cookies sent with the upgrade request into a principal */
+  resolvePrincipalFromCookie(cookie: string): Promise<Principal>
   /** true when the user may subscribe to a chat channel */
   canJoinChannel(principal: Principal, workspaceId: string | null, channelId: string): Promise<boolean>
 }
@@ -154,7 +158,15 @@ export function createGateway(opts: GatewayOptions): Gateway {
   }
 
   async function onHello(s: Socket, msg: Extract<ClientMessage, { t: 'hello' }>) {
-    const principal = await opts.resolvePrincipal(msg.token).catch(() => ANONYMOUS)
+    // Browsers cannot read the HttpOnly session cookie, so a first-party client sends no token and
+    // relies on the cookie the browser attaches to the upgrade request instead. API clients and
+    // native apps present a bearer token in `hello`.
+    const principal = await (msg.token
+      ? opts.resolvePrincipal(msg.token)
+      : s.cookie
+        ? opts.resolvePrincipalFromCookie(s.cookie)
+        : Promise.resolve(ANONYMOUS)
+    ).catch(() => ANONYMOUS)
     if (principal.kind === 'anonymous' || !principal.userId) {
       send(s, { t: 'error', code: 'UNAUTHORIZED', message: 'Invalid or expired session' })
       s.ws.close(4401, 'unauthorized')
@@ -257,10 +269,11 @@ export function createGateway(opts: GatewayOptions): Gateway {
     }
   }
 
-  wss.on('connection', (ws: WebSocket) => {
+  wss.on('connection', (ws: WebSocket, req?: IncomingMessage) => {
     const s: Socket = {
       id: randomUUID(),
       ws,
+      cookie: req?.headers.cookie ?? null,
       principal: ANONYMOUS,
       channels: new Set(),
       seq: 0,
