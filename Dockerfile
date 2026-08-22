@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Kern chat service: chat module and the realtime WebSocket gateway.
 #
-# @kernalo/* packages come from GitHub Packages while the repositories are private, so the build needs a
+# @kernaio/* packages come from GitHub Packages while the repositories are private, so the build needs a
 # token with read:packages:
 #   docker build --secret id=NODE_AUTH_TOKEN,env=GITHUB_TOKEN .
 FROM node:24-slim AS base

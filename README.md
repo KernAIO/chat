@@ -1,7 +1,7 @@
 # Kern chat service
 
-Hosts the [chat module](https://github.com/KernALO/modules) and the **realtime WebSocket gateway** that
-every Kern module shares. Part of [Kern](https://github.com/KernALO/kern).
+Hosts the [chat module](https://github.com/KernAIO/modules) and the **realtime WebSocket gateway** that
+every Kern module shares. Part of [Kern](https://github.com/KernAIO/kern).
 
 ```
 browser ──ws──▶ /ws  gateway ──▶ chat module ──▶ Postgres (mod_chat)
@@ -11,7 +11,7 @@ browser ──ws──▶ /ws  gateway ──▶ chat module ──▶ Postgres 
 
 ## Realtime protocol
 
-Clients speak the protocol defined in `@kernalo/contracts` (`ClientMessage` / `ServerMessage`).
+Clients speak the protocol defined in `@kernaio/contracts` (`ClientMessage` / `ServerMessage`).
 
 | client → server | meaning |
 |---|---|

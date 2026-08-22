@@ -1,6 +1,6 @@
 /**
  * Loads `.env` (repo-local, then the umbrella dev workspace) outside production and validates the
- * chat-specific environment. Kernel-level variables are validated by `@kernalo/kernel`.
+ * chat-specific environment. Kernel-level variables are validated by `@kernaio/kernel`.
  */
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

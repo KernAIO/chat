@@ -13,7 +13,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/kernalo/${{ github.event.repository.name }}
+          images: ghcr.io/kernaio/${{ github.event.repository.name }}
           tags: |
             type=ref,event=branch
             type=semver,pattern={{version}}

@@ -10,12 +10,12 @@ Thanks for your interest in Kern — an open-source, self-hostable all-in-one wo
 
 ## Development setup
 ```bash
-git clone https://github.com/KernALO/kern && cd kern
-pnpm setup      # clones all repos into ./repos and installs (pnpm links @kernalo/*)
+git clone https://github.com/KernAIO/kern && cd kern
+pnpm setup      # clones all repos into ./repos and installs (pnpm links @kernaio/*)
 pnpm infra      # Postgres 18 · NATS · Valkey · MinIO · Mailpit (docker compose)
 pnpm dev        # runs app + services with hot reload
 ```
-Requirements: Node 24, pnpm 10, Docker. Each repo also works standalone with published `@kernalo/*` packages.
+Requirements: Node 24, pnpm 10, Docker. Each repo also works standalone with published `@kernaio/*` packages.
 
 ## Pull requests
 1. Fork/branch from `main`; keep PRs focused and reasonably small.
@@ -28,6 +28,12 @@ Requirements: Node 24, pnpm 10, Docker. Each repo also works standalone with pub
 - TypeScript strict, ESM, Biome formatting (CI enforces it).
 - API surface is contract-first (Zod + oRPC → REST/OpenAPI); modules own their Postgres schema (`mod_<id>`) with `workspace_id` + row-level security on tenant tables; cross-module access only through `kernel.call()` and events.
 - UI: Svelte 5 + Tailwind v4, design tokens from `app/DESIGN.md`, i18n via Paraglide, RTL and dark mode are first-class.
+
+## Continuous integration
+
+The shared `@kernaio/*` packages are published from the `kernel` and `modules` repositories. CI in the
+other repositories installs them from the registry, so a change to a contract lands and publishes
+before its consumers are updated.
 
 ## Security
 Please report vulnerabilities privately — see [SECURITY.md](./SECURITY.md). Do not open public issues for security problems.
