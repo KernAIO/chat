@@ -28,3 +28,32 @@ The repositories are **public**, so every commit is visible the moment it is pus
 - `pnpm typecheck && pnpm lint && pnpm test && pnpm build` must pass before pushing.
 - UI follows `app/DESIGN.md` (Ink/paper design system) and must work in RTL (fa/ar) and dark mode.
 - All user-facing strings go through i18n (Paraglide) — no hardcoded English in components.
+
+## Keeping this file current
+This file is how the next person — or the next agent — avoids repeating what we already worked out.
+When you learn something durable, add it here **in the same commit as the change that taught you**:
+- a trap that cost you time (a silent failure, a misleading error, a tool that lies about success)
+- a convention you had to infer from reading several files
+- a decision and the reason behind it, especially where the obvious choice is wrong
+Keep it specific and short. Delete anything that stops being true — a stale note is worse than none.
+
+---
+
+# This repository: chat (messaging and the realtime gateway)
+
+Hosts the chat module and the **WebSocket gateway that every module shares**. Runs on **:4100**;
+sockets connect to `/ws`.
+
+**Things worth knowing**
+- The protocol lives in `@kernhq/contracts` (`realtime.ts`). Both sides must agree, so change it there
+  first, not here.
+- A browser cannot read the HttpOnly session cookie, so a first-party client sends **no token** in
+  `hello` and the gateway authenticates from the cookie on the upgrade request. Bearer tokens remain
+  for API and native clients. Every socket was rejected until this was handled.
+- Services never write to sockets. They publish through `kernel.realtime`, which fans out over NATS
+  (`kern.rt.ch.*`, `kern.rt.user.*`); each replica forwards only what its own sockets subscribe to.
+  Publishes made inside this process skip the round trip.
+- Presence lives in Valkey with a TTL so it survives a restart and expires on its own. Marking a user
+  offline when their last socket on *this* replica closes is approximate across replicas — deliberately.
+- Unread and mention counters are per member and updated on write. Do not compute them by counting
+  messages at read time.
