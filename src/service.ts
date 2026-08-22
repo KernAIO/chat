@@ -1,5 +1,5 @@
-import { createHttpServer, createKernel, type Kernel } from '@kernaio/kernel'
-import { chatModule, chatServices } from '@kernaio/module-chat/server'
+import { createHttpServer, createKernel, type Kernel } from '@kernhq/kernel'
+import { chatModule, chatServices } from '@kernhq/module-chat/server'
 import type { FastifyInstance } from 'fastify'
 import { type ChatEnv, loadChatEnv } from './env.js'
 import { createGateway, type Gateway } from './gateway.js'

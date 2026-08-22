@@ -1,5 +1,5 @@
-import { ANONYMOUS, type Principal } from '@kernaio/contracts'
-import type { Kernel } from '@kernaio/kernel'
+import { ANONYMOUS, type Principal } from '@kernhq/contracts'
+import type { Kernel } from '@kernhq/kernel'
 import type { FastifyRequest } from 'fastify'
 
 /**

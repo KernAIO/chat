@@ -11,7 +11,7 @@ browser ──ws──▶ /ws  gateway ──▶ chat module ──▶ Postgres 
 
 ## Realtime protocol
 
-Clients speak the protocol defined in `@kernaio/contracts` (`ClientMessage` / `ServerMessage`).
+Clients speak the protocol defined in `@kernhq/contracts` (`ClientMessage` / `ServerMessage`).
 
 | client → server | meaning |
 |---|---|

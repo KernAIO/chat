@@ -1,5 +1,5 @@
 {
-  "name": "@kernaio/chat",
+  "name": "@kernhq/chat",
   "version": "0.1.0",
   "private": true,
   "description": "Kern chat service: hosts the chat module and the realtime WebSocket gateway (presence, typing, fan-out)",
@@ -19,9 +19,9 @@
     "smoke": "tsx scripts/ws-smoke.ts"
   },
   "dependencies": {
-    "@kernaio/contracts": "^0.1.0",
-    "@kernaio/kernel": "^0.1.0",
-    "@kernaio/module-chat": "^0.1.0",
+    "@kernhq/contracts": "^0.1.0",
+    "@kernhq/kernel": "^0.1.0",
+    "@kernhq/module-chat": "^0.1.0",
     "dotenv": "^17.0.0",
     "fastify": "^5.6.0",
     "ioredis": "^6.0.0",

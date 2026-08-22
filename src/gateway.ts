@@ -2,7 +2,7 @@
  * The Kern realtime WebSocket gateway.
  *
  * One socket per browser tab carries every module's realtime traffic. Clients speak the protocol in
- * `@kernaio/contracts` (`ClientMessage` / `ServerMessage`): they authenticate with `hello`, subscribe to
+ * `@kernhq/contracts` (`ClientMessage` / `ServerMessage`): they authenticate with `hello`, subscribe to
  * channels, and receive entity changes, notifications, badges, typing and presence.
  *
  * Services never talk to sockets directly. They publish through `kernel.realtime`, which fans out over
@@ -18,9 +18,9 @@ import {
   channel as chan,
   type Principal,
   type ServerMessage,
-} from '@kernaio/contracts'
-import type { Kernel } from '@kernaio/kernel'
-import { rtSubject } from '@kernaio/kernel'
+} from '@kernhq/contracts'
+import type { Kernel } from '@kernhq/kernel'
+import { rtSubject } from '@kernhq/kernel'
 import { StringCodec } from 'nats'
 import { WebSocket, WebSocketServer } from 'ws'
 import type { ChatEnv } from './env.js'
