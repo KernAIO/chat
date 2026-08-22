@@ -14,7 +14,7 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
     "lint": "biome check .",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.test.json",
     "test": "vitest run",
     "smoke": "tsx scripts/ws-smoke.ts"
   },
@@ -31,7 +31,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
+    "@kernhq/testing": "^0.1.0",
     "@kernhq/tsconfig": "^0.1.0",
+    "@orpc/contract": "^1.15.0",
+    "@orpc/server": "^1.15.0",
     "@types/node": "^24.0.0",
     "@types/ws": "^8.18.0",
     "tsx": "^4.20.0",

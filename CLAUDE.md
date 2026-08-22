@@ -57,3 +57,11 @@ sockets connect to `/ws`.
   offline when their last socket on *this* replica closes is approximate across replicas — deliberately.
 - Unread and mention counters are per member and updated on write. Do not compute them by counting
   messages at read time.
+- `kernel.realtime.change()` has to be teed into the gateway like `toChannel`/`toUser`. Taking it
+  straight from the inner realtime publishes to NATS only, and on a single node nothing ever comes
+  back — every entity change silently failed to reach a socket until this was covered by a test.
+- Presence is stored as `{"status","at"}` JSON under `presence:<userId>`. Writing a bare status string
+  still "works" but `readPresence` cannot parse it and reports everyone as plainly `online`.
+- Tests boot the real service (`src/testing/harness.ts`), stub the handful of core procedures on the
+  kernel broker, and drive real WebSockets. The chat module resolves to its **built** `dist`, so rebuild
+  `@kernhq/module-chat` after changing it or the suite silently tests the old code.

@@ -1,4 +1,5 @@
-import { createHttpServer, createKernel, type Kernel } from '@kernhq/kernel'
+import { channel as chan } from '@kernhq/contracts'
+import { createHttpServer, createKernel, type Kernel, rtSubject } from '@kernhq/kernel'
 import { chatModule, chatServices } from '@kernhq/module-chat/server'
 import type { FastifyInstance } from 'fastify'
 import { type ChatEnv, loadChatEnv } from './env.js'
@@ -100,19 +101,27 @@ export async function createChatService(opts: ChatServiceOptions = {}): Promise<
 /** Tees realtime publishes into the local gateway in addition to NATS. */
 function wrapRealtime(kernel: Kernel, gateway: Gateway): Kernel['realtime'] {
   const inner = kernel.realtime
+  const toChannel: Kernel['realtime']['toChannel'] = async (ch, msg) => {
+    gateway.deliverLocal(rtSubject.channel(ch), msg)
+    await inner.toChannel(ch, msg)
+  }
+  const toUser: Kernel['realtime']['toUser'] = async (userId, msg) => {
+    gateway.deliverLocal(rtSubject.user(userId), msg)
+    await inner.toUser(userId, msg)
+  }
   return {
-    async toChannel(ch, msg) {
-      gateway.deliverLocal(`kern.rt.ch.${ch.replace(/:/g, '_')}`, msg)
-      await inner.toChannel(ch, msg)
-    },
-    async toUser(userId, msg) {
-      gateway.deliverLocal(`kern.rt.user.${userId}`, msg)
-      await inner.toUser(userId, msg)
-    },
+    toChannel,
+    toUser,
     async toUsers(userIds, msg) {
-      for (const id of userIds) gateway.deliverLocal(`kern.rt.user.${id}`, msg)
-      await inner.toUsers(userIds, msg)
+      await Promise.all(userIds.map((id) => toUser(id, msg)))
     },
-    change: inner.change,
+    // `inner.change` publishes straight to NATS, which never comes back to this process. Entity
+    // changes have to go through the teed `toChannel` as well or nothing reaches a socket on a
+    // single-node deployment (and, with NATS, the local sockets take a needless round trip).
+    async change(workspaceId, change) {
+      const msg = { t: 'change', workspaceId, change } as const
+      await toChannel(chan.workspace(workspaceId), msg as never)
+      await toChannel(chan.object(workspaceId, change.module, change.id), msg as never)
+    },
   }
 }

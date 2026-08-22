@@ -131,8 +131,15 @@ export function createGateway(opts: GatewayOptions): Gateway {
   }
 
   const presenceKey = (userId: string) => `presence:${userId}`
+  // The stored shape is what `readPresence` (chat module, `chat.presence.get`) parses: a bare status
+  // string reads back as a plain "online" and loses both the chosen status and the last-seen time.
   const setPresence = async (userId: string, status: string) => {
-    await kernel.redis?.set(presenceKey(userId), status, 'EX', env.PRESENCE_TTL_SEC)
+    await kernel.redis?.set(
+      presenceKey(userId),
+      JSON.stringify({ status, at: Date.now() }),
+      'EX',
+      env.PRESENCE_TTL_SEC,
+    )
   }
   const clearPresence = async (userId: string) => {
     await kernel.redis?.del(presenceKey(userId))
