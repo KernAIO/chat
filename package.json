@@ -1,0 +1,39 @@
+{
+  "name": "@kernalo/chat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kern chat service: hosts the chat module and the realtime WebSocket gateway (presence, typing, fan-out)",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "lint": "biome check .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "smoke": "tsx scripts/ws-smoke.ts"
+  },
+  "dependencies": {
+    "@kernalo/contracts": "^0.1.0",
+    "@kernalo/kernel": "^0.1.0",
+    "@kernalo/module-chat": "^0.1.0",
+    "dotenv": "^17.0.0",
+    "fastify": "^5.6.0",
+    "ioredis": "^6.0.0",
+    "nats": "^2.29.0",
+    "ws": "^8.18.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "@types/node": "^24.0.0",
+    "@types/ws": "^8.18.0",
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.0"
+  }
+}
