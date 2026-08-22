@@ -1,51 +1,79 @@
-# Kern chat service
+# chat
 
-Hosts the [chat module](https://github.com/KernAIO/modules) and the **realtime WebSocket gateway** that
-every Kern module shares. Part of [Kern](https://github.com/KernAIO/kern).
+**Conversations, and the connection that keeps the whole application live.**
 
-```
-browser ──ws──▶ /ws  gateway ──▶ chat module ──▶ Postgres (mod_chat)
-                    ▲                    │
-   other services ──┘ NATS kern.rt.*     └─ core (notifications, search, users) via kernel.call
-```
+Two jobs in one service. It holds the messages: channels, direct messages, group messages, threads,
+reactions, pinned messages and read state. It also holds the websocket that every
+[Kern](https://github.com/KernAIO/kern) client keeps open.
 
-## Realtime protocol
+That second job is why chat runs on its own. One person has one connection, whatever they are
+looking at. A new message arrives on it, and so does an issue changing under someone else's cursor,
+a notification, a typing indicator and a presence change.
 
-Clients speak the protocol defined in `@kernhq/contracts` (`ClientMessage` / `ServerMessage`).
+## Run it
 
-| client → server | meaning |
-|---|---|
-| `hello` | authenticate with a session token (required within 10s, else the socket closes with 4401) |
-| `sub` / `unsub` | subscribe to channels; every subscription is authorised |
-| `typing` | typing indicator, throttled per user and channel, never echoed to the sender |
-| `presence` | set presence; refreshed by pings and stored in Valkey with a TTL |
-| `ping` | keep-alive, answered with `pong` |
+Goal: start chat on your own machine and open a websocket to it.
 
-| server → client | meaning |
-|---|---|
-| `welcome` | authentication succeeded |
-| `change` | an entity was created, updated or deleted (drives cache invalidation) |
-| `notification` / `badge` | a new notification, and unread counts per workspace |
-| `typing` / `presence` | other members' activity |
-| `error` | subscription refused or message rejected |
+You need:
 
-Channel names: `user:<userId>` (private, auto-subscribed), `ws:<workspaceId>` (everything in a
-workspace), `ws:<workspaceId>:<module>:<id>` (one object), `chat:<channelId>` (a chat channel).
+- Node 24 and pnpm 10.
+- A Postgres 18 database.
+- Valkey, if you want presence stored rather than skipped.
 
-## Scaling
+Most people should run the whole platform from the
+[umbrella repository](https://github.com/KernAIO/kern) instead. There, `pnpm setup && pnpm infra &&
+pnpm dev` starts chat with everything it talks to.
 
-Sockets are sticky to one replica but hold no shared state. Services publish through
-`kernel.realtime`, which fans out over NATS (`kern.rt.ch.*`, `kern.rt.user.*`); each replica forwards
-only what its own sockets subscribe to, and publishes made in-process are delivered without a round
-trip. Presence lives in Valkey with a TTL, so it survives a replica restart and expires on its own if
-a socket disappears without a clean close.
-
-## Development
+### 1. Install and configure
 
 ```bash
-pnpm dev                      # http://localhost:4100 (health at /api/health, metrics at /api/chat/metrics)
-KERN_TOKEN=<token> pnpm smoke  # connect a WebSocket client and print the traffic
+pnpm install
+cp .env.example .env
 ```
 
-Requires the core service for identity (`core.users.principal`) plus Postgres, NATS and Valkey —
-`pnpm infra` in the umbrella repo starts them.
+Set `DATABASE_URL` in `.env` to your Postgres database.
+
+### 2. Start chat
+
+```bash
+pnpm dev
+```
+
+The service creates its own database tables the first time it starts.
+
+**Expected result:** `migrations applied`, then `chat service listening` on port 4100.
+
+## What it exposes
+
+| Path | What answers there |
+|---|---|
+| `/api/chat/*` | Channels, messages, threads, reactions, pins, search |
+| `/ws` | The websocket every client keeps open |
+
+## How the websocket works
+
+A client connects to `/ws` and subscribes to named channels:
+
+| Channel name | Carries |
+|---|---|
+| `ws:<workspaceId>` | Everything that changed in a workspace |
+| `ws:<workspaceId>:<module>:<id>` | One object, while somebody has it open |
+| `chat:<channelId>` | Messages and typing in one conversation |
+| `user:<userId>` | Notifications and unread counts — subscribed automatically |
+
+Messages travel between service instances over NATS, so it does not matter which instance a person
+is connected to.
+
+## Things worth knowing
+
+- **The browser cannot read the session cookie**, because it is `HttpOnly`. The gateway therefore
+  reads the cookie from the upgrade request itself. A client that cannot send a token still connects.
+- **Presence needs Valkey.** Without it, presence is skipped rather than faked.
+- **Read state is per member, not per message.** Each membership stores the last sequence number it
+  read, which is what makes an unread count one number instead of a scan.
+- A workspace that switches chat off keeps its messages. Nothing is deleted; the module stops
+  answering.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md). Licence: [AGPL-3.0](LICENSE).
