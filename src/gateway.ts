@@ -82,7 +82,10 @@ export function createGateway(opts: GatewayOptions): Gateway {
     if (s.channels.has(name)) return
     s.channels.add(name)
     let set = subscribers.get(name)
-    if (!set) subscribers.set(name, (set = new Set()))
+    if (!set) {
+      set = new Set()
+      subscribers.set(name, set)
+    }
     set.add(s.id)
   }
   const unsubscribe = (s: Socket, name: string) => {
@@ -176,7 +179,10 @@ export function createGateway(opts: GatewayOptions): Gateway {
     s.authenticated = true
 
     let users = byUser.get(principal.userId)
-    if (!users) byUser.set(principal.userId, (users = new Set()))
+    if (!users) {
+      users = new Set()
+      byUser.set(principal.userId, users)
+    }
     users.add(s.id)
     // keep a user's socket count bounded (a tab that never closes cleanly should not accumulate)
     if (users.size > env.MAX_SOCKETS_PER_USER) {
