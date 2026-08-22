@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DATABASE_URL: postgres://kern:kern@localhost:5432/kern
+      VALKEY_URL: redis://localhost:6379
     services:
       # The suites run against a real Postgres: they create a scratch database per file, apply the
       # migrations and prove row-level security by connecting as an unprivileged role. Nothing here
@@ -25,6 +26,15 @@ jobs:
         ports: ['5432:5432']
         options: >-
           --health-cmd "pg_isready -U kern"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      # The gateway suite turns presence on deliberately, so it needs somewhere to store it.
+      valkey:
+        image: valkey/valkey:8-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "valkey-cli ping"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
