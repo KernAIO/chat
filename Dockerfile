@@ -12,8 +12,11 @@ WORKDIR /app
 FROM base AS deps
 COPY package.json pnpm-lock.yaml* .npmrc* ./
 RUN --mount=type=secret,id=NODE_AUTH_TOKEN \
-    NODE_AUTH_TOKEN="$(cat /run/secrets/NODE_AUTH_TOKEN 2>/dev/null || true)" \
-    pnpm install --prod=false --no-frozen-lockfile
+    if [ -s /run/secrets/NODE_AUTH_TOKEN ]; then \
+      printf '//npm.pkg.github.com/:_authToken=%s\n' "$(cat /run/secrets/NODE_AUTH_TOKEN)" >> .npmrc; \
+    fi && \
+    pnpm install --prod=false --no-frozen-lockfile && \
+    sed -i '/_authToken/d' .npmrc
 
 FROM deps AS build
 COPY . .
