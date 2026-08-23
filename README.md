@@ -2,6 +2,12 @@
 
 **Conversations, and the connection that keeps the whole application live.**
 
+[![CI](https://img.shields.io/github/actions/workflow/status/KernAIO/chat/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/KernAIO/chat/actions/workflows/ci.yml)
+[![Licence](https://img.shields.io/badge/licence-AGPL--3.0-blue?style=flat-square)](LICENSE)
+[![Status](https://img.shields.io/badge/status-pre--1.0-orange?style=flat-square)](https://github.com/KernAIO/kern#what-works-today)
+[![Last commit](https://img.shields.io/github/last-commit/KernAIO/chat?style=flat-square)](https://github.com/KernAIO/chat/commits/main)
+[![Website](https://img.shields.io/badge/kernaio.com-1f2328?style=flat-square)](https://kernaio.com)
+
 Two jobs in one service. It holds the messages: channels, direct messages, group messages, threads,
 reactions, pinned messages and read state. It also holds the websocket that every
 [Kern](https://github.com/KernAIO/kern) client keeps open.
@@ -78,4 +84,7 @@ is connected to.
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md). Licence: [AGPL-3.0](LICENSE).
 
-Website: [kernaio.com](https://kernaio.com).
+---
+
+**Kern** — one place for your team's work: issues, conversations, documents and people.
+Open source, self-hosted. [kernaio.com](https://kernaio.com) · [github.com/KernAIO](https://github.com/KernAIO)
