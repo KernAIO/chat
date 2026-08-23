@@ -1,3 +1,7 @@
+<p align="center">
+<img src="https://raw.githubusercontent.com/KernAIO/kern/main/assets/kern-mark.svg" width="56" alt="">
+</p>
+
 # chat
 
 **Conversations, and the connection that keeps the whole application live.**
