@@ -20,8 +20,6 @@ export interface ChatService {
   stop(): Promise<void>
 }
 
-export const CHAT_VERSION = '0.1.0'
-
 /**
  * Boots the chat service: the chat module (channels, messages, read state) plus the realtime gateway
  * that every Kern module shares. `main.ts` is a thin wrapper; tests boot this against a scratch database.
@@ -31,7 +29,6 @@ export async function createChatService(opts: ChatServiceOptions = {}): Promise<
   const env = loadChatEnv(opts.env ?? {})
   const kernel = await createKernel({
     service: 'chat',
-    version: CHAT_VERSION,
     modules: [chatModule],
     role,
     env: { PORT: process.env.PORT ?? '4100', ...opts.env },
@@ -74,7 +71,7 @@ export async function createChatService(opts: ChatServiceOptions = {}): Promise<
       kernel,
       resolvePrincipal: (req) => principals.fromRequest(req),
       corsOrigins,
-      openapi: { title: 'Kern', version: CHAT_VERSION },
+      openapi: { title: 'Kern', version: kernel.version },
       extend: async (fastify) => {
         fastify.get('/api/chat/metrics', async () => ({
           service: 'chat',

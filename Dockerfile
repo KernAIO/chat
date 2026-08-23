@@ -23,7 +23,10 @@ COPY . .
 RUN pnpm build && pnpm prune --prod
 
 FROM base AS runtime
-ENV NODE_ENV=production
+# The release this image belongs to. Every Kern service in an instance is built from the same one,
+# which is what lets the kernel answer "which version of Kern is this" with a single number.
+ARG KERN_VERSION=0.0.0-dev
+ENV NODE_ENV=production KERN_VERSION=${KERN_VERSION}
 RUN useradd --system --uid 10001 --create-home kern
 COPY --from=build --chown=kern:kern /app/node_modules ./node_modules
 COPY --from=build --chown=kern:kern /app/dist ./dist

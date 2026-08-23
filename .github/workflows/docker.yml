@@ -23,6 +23,10 @@ jobs:
         with:
           context: .
           push: true
+          # the tag and the version inside the image have to be the same thing, or /api/health
+          # reports something the release feed has never heard of
+          build-args: |
+            KERN_VERSION=${{ steps.meta.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
