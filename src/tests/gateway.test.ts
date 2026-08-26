@@ -90,6 +90,21 @@ describe('authentication', () => {
     expect(await socket.closed).toBe(4401)
   })
 
+  it('holds a sub that arrives with its own hello, instead of closing on it', async () => {
+    // Every client sends `hello` and `sub` back to back, so both frames arrive in one read and are
+    // dispatched while `hello` is still awaiting core. Closing the second one as unauthorized sent
+    // the client into a reconnect loop it could only escape by luck of network timing.
+    const socket = await track(connect(url))
+    socket.send({ t: 'hello', token: alice.token, clientId: 'tab-race' })
+    socket.send({ t: 'sub', channels: [`ws:${ws}`] })
+
+    const outcome = await Promise.race([
+      socket.next((m) => m.t === 'welcome').then(() => 'welcome'),
+      socket.closed.then((code) => `closed:${code}`),
+    ])
+    expect(outcome).toBe('welcome')
+  })
+
   it('answers ping with pong', async () => {
     const socket = await track(connectAs(url, alice))
     socket.send({ t: 'ping' })

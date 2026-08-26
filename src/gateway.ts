@@ -38,6 +38,8 @@ interface Socket {
   alive: boolean
   missedPings: number
   authenticated: boolean
+  /** resolves once the `hello` in flight has been answered; messages that arrive meanwhile wait on it */
+  authenticating: Promise<void> | null
   lastTyping: Map<string, number>
 }
 
@@ -167,7 +169,23 @@ export function createGateway(opts: GatewayOptions): Gateway {
     return false
   }
 
-  async function onHello(s: Socket, msg: Extract<ClientMessage, { t: 'hello' }>) {
+  /**
+   * Answer a `hello`, and publish the attempt as `s.authenticating`.
+   *
+   * A client sends `hello` and its `sub` back to back, so both frames usually arrive in one read and
+   * are dispatched in the same tick — while this function is still awaiting core. Without something
+   * for the second message to wait on, it was met by a socket that was not authenticated *yet* and
+   * closed as unauthorized, which the client answered by reconnecting into the same race.
+   */
+  function onHello(s: Socket, msg: Extract<ClientMessage, { t: 'hello' }>) {
+    const attempt = authenticate(s, msg).finally(() => {
+      if (s.authenticating === attempt) s.authenticating = null
+    })
+    s.authenticating = attempt
+    return attempt
+  }
+
+  async function authenticate(s: Socket, msg: Extract<ClientMessage, { t: 'hello' }>) {
     // Browsers cannot read the HttpOnly session cookie, so a first-party client sends no token and
     // relies on the cookie the browser attaches to the upgrade request instead. API clients and
     // native apps present a bearer token in `hello`.
@@ -214,6 +232,8 @@ export function createGateway(opts: GatewayOptions): Gateway {
       return send(s, { t: 'error', code: 'BAD_REQUEST', message: 'Malformed message' })
     }
     if (msg.t === 'hello') return onHello(s, msg)
+    // a `sub` that overtook its own `hello` is not an unauthenticated client, it is an early one
+    if (!s.authenticated && s.authenticating) await s.authenticating
     if (!s.authenticated) {
       send(s, { t: 'error', code: 'UNAUTHORIZED', message: 'Send hello first' })
       return s.ws.close(4401, 'unauthorized')
@@ -293,6 +313,7 @@ export function createGateway(opts: GatewayOptions): Gateway {
       alive: true,
       missedPings: 0,
       authenticated: false,
+      authenticating: null,
       lastTyping: new Map(),
     }
     sockets.set(s.id, s)
