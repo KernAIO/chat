@@ -13,13 +13,13 @@
     "dev": "tsx watch --clear-screen=false src/main.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
-    "lint": "biome check .",
+    "lint": "biome check . && node scripts/check-ranges.mjs package.json",
     "typecheck": "tsc -p tsconfig.test.json",
     "test": "vitest run",
     "smoke": "tsx scripts/ws-smoke.ts"
   },
   "dependencies": {
-    "@kernhq/contracts": "^0.5.1",
+    "@kernhq/contracts": "^0.6.1",
     "@kernhq/kernel": "^0.7.0",
     "@kernhq/module-chat": "^0.4.1",
     "dotenv": "^17.0.0",
