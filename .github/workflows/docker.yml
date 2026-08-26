@@ -18,7 +18,11 @@ jobs:
             type=ref,event=branch
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable={{is_default_branch}}
+            # `latest` follows the newest *release*, never `main`. It used to be re-tagged on every
+            # push, and `selfhost/.env.example` shipped `KERN_VERSION=latest` — so a self-hoster who
+            # pulled got whatever main happened to be at that second, mid-work included. An image
+            # tag pointed at customers has to mean something.
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
       - uses: docker/build-push-action@v6
         with:
           context: .
