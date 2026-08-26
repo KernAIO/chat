@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/KernAIO/kern/main/assets/kern-mark.svg" width="56" alt="">
+<img src="https://raw.githubusercontent.com/KernAIO/app/main/assets/kern-mark.svg" width="56" alt="">
 </p>
 
 # chat
@@ -8,13 +8,13 @@
 
 [![CI](https://img.shields.io/github/actions/workflow/status/KernAIO/chat/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/KernAIO/chat/actions/workflows/ci.yml)
 [![Licence](https://img.shields.io/badge/licence-AGPL--3.0-blue?style=flat-square)](LICENSE)
-[![Status](https://img.shields.io/badge/status-pre--1.0-orange?style=flat-square)](https://github.com/KernAIO/kern#what-works-today)
+[![Status](https://img.shields.io/badge/status-pre--1.0-orange?style=flat-square)](https://github.com/KernAIO/app#what-works-today)
 [![Last commit](https://img.shields.io/github/last-commit/KernAIO/chat?style=flat-square)](https://github.com/KernAIO/chat/commits/main)
 [![Website](https://img.shields.io/badge/kernaio.com-1f2328?style=flat-square)](https://kernaio.com)
 
 Two jobs in one service. It holds the messages: channels, direct messages, group messages, threads,
 reactions, pinned messages and read state. It also holds the websocket that every
-[Kern](https://github.com/KernAIO/kern) client keeps open.
+[Kern](https://github.com/KernAIO/app) client keeps open.
 
 That second job is why chat runs on its own. One person has one connection, whatever they are
 looking at. A new message arrives on it, and so does an issue changing under someone else's cursor,
@@ -31,7 +31,7 @@ You need:
 - Valkey, if you want presence stored rather than skipped.
 
 Most people should run the whole platform from the
-[umbrella repository](https://github.com/KernAIO/kern) instead. There, `pnpm setup && pnpm infra &&
+[umbrella repository](https://github.com/KernAIO/app) instead. There, `pnpm setup && pnpm infra &&
 pnpm dev` starts chat with everything it talks to.
 
 ### 1. Install and configure
@@ -92,7 +92,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) and [CLAUDE.md](CLAUDE.md).
 
 [AGPL-3.0-only](LICENSE). This repository is part of the Kern product.
 The Kern framework you build modules against is Apache-2.0 — see
-[LICENSING.md](https://github.com/KernAIO/kern/blob/main/LICENSING.md).
+[LICENSING.md](https://github.com/KernAIO/app/blob/main/LICENSING.md).
 
 ---
 

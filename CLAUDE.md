@@ -10,7 +10,7 @@ The repositories are **public**, so every commit is visible the moment it is pus
 - Every repo carries LICENSE, CLA.md, CODE_OF_CONDUCT.md, SECURITY.md, CONTRIBUTING.md.
 - **Two licences, split at the framework boundary.** The `kernel` repo and `modules`'
   `_template` + `workflow` are **Apache-2.0** so anyone can write a closed module; the product —
-  `app`, `core`, `chat`, `mail`, `collab`, `docs`, this umbrella, the first-party modules — is
+  `shell`, `core`, `chat`, `mail`, `collab`, `docs`, this umbrella, the first-party modules — is
   **AGPL-3.0-only**. A new package inherits its repo's licence unless it is something a third-party
   module must import, and then it is Apache-2.0 with its own LICENSE file. Apache-2.0 packages take
   only permissive dependencies. If a module author has to import an AGPL package to get something
@@ -32,12 +32,12 @@ The repositories are **public**, so every commit is visible the moment it is pus
   they are still working on them; tell them instead, and repair what you broke.
 
 ## Layout & workflow
-- Umbrella dev workspace: `kern/` with sibling repos cloned under `kern/repos/<name>` (gitignored there). pnpm links all `@kernhq/*` packages via the umbrella workspace.
-- Install dependencies ONLY via `kern/scripts/pnpm-install-locked.sh` (serialises pnpm at the umbrella root).
+- Umbrella dev workspace: `app/` with sibling repos cloned under `app/repos/<name>` (gitignored there). pnpm links all `@kernhq/*` packages via the umbrella workspace.
+- Install dependencies ONLY via `app/scripts/pnpm-install-locked.sh` (serialises pnpm at the umbrella root).
 - Node 24 (`nvm use 24`), pnpm 10, TypeScript ~5.9, ESM/NodeNext, Biome for lint+format (run `pnpm exec biome check --write <paths>` before committing), Vitest.
 - Contracts first: changes to `@kernhq/contracts` / module contracts land (and build) before their consumers.
 - Modules own their data: Postgres schema `mod_<id>`, `workspace_id` + RLS on every tenant table, cross-module access only via `kernel.call()` and events. See `modules` repo `packages/_template`.
-- Ports: app 5173 · core 4000 · chat 4100 · mail 4200 · collab 4300 · docs 4400.
+- Ports: shell 5173 · core 4000 · chat 4100 · mail 4200 · collab 4300 · docs 4400.
 - Dev DB on this machine: Homebrew Postgres 18 at `localhost:5432` (`kern`/`kern`); the compose Postgres listens on `${KERN_PG_PORT:-5432}` (5433 here).
 
 ## CI
@@ -69,7 +69,7 @@ It governs documents for readers. Code comments and commit messages keep the voi
 
 ## Quality bar
 - `pnpm typecheck && pnpm lint && pnpm test && pnpm build` must pass before pushing.
-- UI follows `app/DESIGN.md` (Ink/paper design system) and must work in RTL (fa/ar) and dark mode.
+- UI follows `shell/DESIGN.md` (Ink/paper design system) and must work in RTL (fa/ar) and dark mode.
 - All user-facing strings go through i18n (Paraglide) — no hardcoded English in components.
 
 ## Keeping this file current
