@@ -19,7 +19,7 @@
     "smoke": "tsx scripts/ws-smoke.ts"
   },
   "dependencies": {
-    "@kernhq/contracts": "^0.6.1",
+    "@kernhq/contracts": "^0.7.0",
     "@kernhq/kernel": "^0.7.0",
     "@kernhq/module-chat": "^0.4.1",
     "dotenv": "^17.0.0",
