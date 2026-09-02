@@ -1,6 +1,8 @@
 name: CI
 on:
-  push: { branches: [main] }
+  # `release/**` is where the nightly release pushes its dependency reach before landing it on
+  # main — the same suite, on a branch, is what decides whether that commit is allowed to land.
+  push: { branches: [main, 'release/**'] }
   pull_request:
 concurrency:
   group: "ci-${{ github.ref }}"
