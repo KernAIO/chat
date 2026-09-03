@@ -21,7 +21,7 @@
   "dependencies": {
     "@kernhq/contracts": "^0.7.0",
     "@kernhq/kernel": "^0.9.1",
-    "@kernhq/module-chat": "^0.4.13",
+    "@kernhq/module-chat": "^0.4.16",
     "dotenv": "^17.0.0",
     "fastify": "^5.6.0",
     "ioredis": "^6.0.0",
