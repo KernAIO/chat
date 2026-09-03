@@ -19,8 +19,8 @@ importers:
         specifier: ^0.9.1
         version: 0.9.1(ws@8.21.3)
       '@kernhq/module-chat':
-        specifier: ^0.4.13
-        version: 0.4.13(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.7.0)(@kernhq/kernel@0.9.1(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)
+        specifier: ^0.4.16
+        version: 0.4.16(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.7.0)(@kernhq/kernel@0.9.1(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)
       dotenv:
         specifier: ^17.0.0
         version: 17.4.2
@@ -447,8 +447,8 @@ packages:
   '@kernhq/kernel@0.9.1':
     resolution: {integrity: sha512-s5Q1vhUYxk0MwFLjSWODNzDVCgY+WjmHi4ZjMiFBsxSoxby4tUlGsGEBAabwn4fOS6UZEQ0D6GD58qKVnB2B2A==}
 
-  '@kernhq/module-chat@0.4.13':
-    resolution: {integrity: sha512-/4i4s3+gIRuNXniKOxS0klxbIFfjKe19fKc9v+NGUJigTVnMbEMTr3up9Rl/vQxjWQfkD1mIC8pHtx0Po8pi2g==}
+  '@kernhq/module-chat@0.4.16':
+    resolution: {integrity: sha512-Y9Rt6XW62XNBhpcx00Bd8NFgrQv+hapW/errV6MBimwIWUV+w//da4Ngu6B0EZqobrxyZI141w5Z+eJfI1jsPA==}
     engines: {node: '>=24'}
     peerDependencies:
       '@kernhq/contracts': ^0.7.0
@@ -698,6 +698,7 @@ packages:
   '@smithy/node-http-handler@4.12.0':
     resolution: {integrity: sha512-0mq1pHadfyXCYCqm2cNpbjNIT+fbaUpNxewZb/YNr2L0IrEVMOb8gM/Fl4K6XvHCW3uSNDFwPl/+iKm0bx9jYg==}
     engines: {node: '>=18.0.0'}
+    deprecated: Depreacted due to a memory leak issue https://github.com/smithy-lang/smithy-typescript/issues/2258
 
   '@smithy/signature-v4@5.7.3':
     resolution: {integrity: sha512-7ImGm+FkHRLcBaRttIAMZ6bzJZWb2cJGoYjq46F2UjycujWzrL9GEN9h4w7eQyXJYnltrUhxbbieBAIRrdqpow==}
@@ -2691,7 +2692,7 @@ snapshots:
       - supports-color
       - ws
 
-  '@kernhq/module-chat@0.4.13(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.7.0)(@kernhq/kernel@0.9.1(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)':
+  '@kernhq/module-chat@0.4.16(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.7.0)(@kernhq/kernel@0.9.1(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)':
     dependencies:
       '@kernhq/contracts': 0.7.0
       '@kernhq/kernel': 0.9.1(ws@8.21.3)
