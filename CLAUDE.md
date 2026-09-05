@@ -105,6 +105,35 @@ sockets connect to `/ws`.
   back — every entity change silently failed to reach a socket until this was covered by a test.
 - Presence is stored as `{"status","at"}` JSON under `presence:<userId>`. Writing a bare status string
   still "works" but `readPresence` cannot parse it and reports everyone as plainly `online`.
+- **A subscription authorised once is authorised for ever, and nothing about that looks wrong.** The
+  gateway checked `canJoinChannel` at `sub` time and never again, so somebody removed from a private
+  channel — or from the workspace — went on receiving the full plaintext of every message posted
+  afterwards, for as long as the tab stayed open. It was invisible because *every other surface was
+  correct*: HTTP refused them on the next request and the shell hid the channel from the sidebar.
+  Enforcement now lives on the delivery path (`deliver` in `gateway.ts`): the answer is cached per
+  socket and channel, `WS_REAUTH_INTERVAL_MS` is how long it is trusted, and a message that arrives
+  after it went stale is **held** until the re-check answers rather than sent optimistically — the
+  message a refusal would stop is exactly the one that must not go out. `core.member.removed`,
+  `chat.channel.member_removed` and `core.permissions.changed` make it immediate instead of
+  eventual. A permission that is only checked when a resource is *opened* has this shape wherever
+  a long-lived connection holds the result.
+- **Name the gateway's own event durables.** Two JetStream pull consumers sharing one durable
+  load-balance the stream, and `@kernhq/kernel` already subscribes to `core.permissions.changed`
+  under the default `<service>-<pattern>`. Left to default, half the revocations would have gone to
+  the kernel's cache invalidation and half here, at random. The gateway passes
+  `<service>-gateway-<pattern>`.
+- **A floating promise in a best-effort path is a crash loop.** `ws.on('pong')` called `setPresence`
+  without `await` or `catch`, so the first heartbeat after Valkey became unreachable ended the
+  process — and `restart: unless-stopped` re-ran the same failing heartbeat until Valkey came back.
+  Presence writes swallow their own failures now, and `src/guards.ts` installs an
+  `unhandledRejection` backstop from `main.ts` for the ones nobody has written yet. It deliberately
+  leaves `uncaughtException` alone: an exception that escaped a synchronous stack leaves state
+  nobody can reason about, and there the restart is the right answer.
 - Tests boot the real service (`src/testing/harness.ts`), stub the handful of core procedures on the
   kernel broker, and drive real WebSockets. The chat module resolves to its **built** `dist`, so rebuild
   `@kernhq/module-chat` after changing it or the suite silently tests the old code.
+  `src/tests/resilience.test.ts` goes the other way: `createGateway` takes every dependency as an
+  option, so a stub kernel and a stub `canJoinChannel` reach the paths that hold when *no* event
+  arrives — and it proves the process guard by spawning a child that rejects a floating promise,
+  once with the guard and once without, because a test that only asserts the good case cannot tell
+  a working guard from a lenient runtime.

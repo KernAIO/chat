@@ -16,6 +16,7 @@ import {
   ANONYMOUS,
   type ClientMessage,
   channel as chan,
+  type EventEnvelope,
   type Principal,
   type ServerMessage,
 } from '@kernhq/contracts'
@@ -27,13 +28,24 @@ import type { ChatEnv } from './env.js'
 
 const sc = StringCodec()
 
+/** How many messages one subscription may hold while its re-authorisation is in flight. */
+const MAX_HELD_MESSAGES = 256
+
+/** One channel a socket is subscribed to, with the age of the answer that admitted it. */
+interface Subscription {
+  /** when `authorize` last said yes for this socket and this channel */
+  checkedAt: number
+  /** messages held while a re-authorisation is in flight; `null` when none is */
+  pending: Array<Record<string, unknown>> | null
+}
+
 interface Socket {
   id: string
   ws: WebSocket
   /** cookie header from the upgrade request, used when the client has no bearer token */
   cookie: string | null
   principal: Principal
-  channels: Set<string>
+  channels: Map<string, Subscription>
   seq: number
   alive: boolean
   missedPings: number
@@ -82,7 +94,7 @@ export function createGateway(opts: GatewayOptions): Gateway {
 
   const subscribe = (s: Socket, name: string) => {
     if (s.channels.has(name)) return
-    s.channels.add(name)
+    s.channels.set(name, { checkedAt: Date.now(), pending: null })
     let set = subscribers.get(name)
     if (!set) {
       set = new Set()
@@ -97,20 +109,82 @@ export function createGateway(opts: GatewayOptions): Gateway {
     set.delete(s.id)
     if (!set.size) subscribers.delete(name)
   }
+  const socketsOf = (userId: string): Socket[] =>
+    [...(byUser.get(userId) ?? [])].flatMap((id) => {
+      const s = sockets.get(id)
+      return s ? [s] : []
+    })
+
+  /** Drop a subscription the socket may no longer have, and tell the client why it went quiet. */
+  const revoke = (s: Socket, name: string) => {
+    if (!s.channels.has(name)) return
+    unsubscribe(s, name)
+    send(s, { t: 'error', code: 'FORBIDDEN', message: `Subscription to ${name} was revoked` })
+    kernel.log.info({ socket: s.id, userId: s.principal.userId, channel: name }, 'ws subscription revoked')
+  }
+
+  /**
+   * Deliver one message to one socket, re-authorising the subscription first when the answer that
+   * admitted it has gone stale.
+   *
+   * Authorising once at `sub` time is what let somebody removed from a private channel — or from
+   * the workspace — go on reading it: HTTP refused them on the next request and the shell hid the
+   * channel, while the socket they already held delivered every message posted afterwards. Asking
+   * again on *every* message would put a database read on the hot path, so the answer is cached
+   * per socket and channel; the revocation events below expire or drop it the moment access
+   * changes, and `WS_REAUTH_INTERVAL_MS` is the ceiling for anything they do not reach.
+   *
+   * Messages that arrive while a check is in flight are held rather than sent optimistically: the
+   * message a refusal would stop is exactly the one that must not go out.
+   */
+  const deliver = (s: Socket, name: string, msg: Record<string, unknown>) => {
+    const sub = s.channels.get(name)
+    if (!sub) return
+    if (sub.pending) {
+      if (sub.pending.length < MAX_HELD_MESSAGES) sub.pending.push(msg)
+      return
+    }
+    if (Date.now() - sub.checkedAt < env.WS_REAUTH_INTERVAL_MS) {
+      sendSeq(s, msg)
+      return
+    }
+    sub.pending = [msg]
+    void reauthorize(s, name).then(({ allowed, answered }) => {
+      const held = sub.pending ?? []
+      sub.pending = null
+      // the socket may have unsubscribed, or been revoked, while the check was in flight
+      if (s.channels.get(name) !== sub) return
+      if (allowed) {
+        sub.checkedAt = Date.now()
+        for (const m of held) sendSeq(s, m)
+      } else if (answered) revoke(s, name)
+      // Unanswerable: nothing is delivered and the subscription stays stale, so the next message
+      // asks again. A database that cannot answer must not deliver — and must not unsubscribe
+      // every socket in the instance over a blip either, because the client only re-subscribes
+      // when it reconnects.
+    })
+  }
+
+  /** `authorize`, separating "no" from "could not say". Never rejects. */
+  const reauthorize = (s: Socket, name: string): Promise<{ allowed: boolean; answered: boolean }> =>
+    authorize(s, name).then(
+      (allowed) => ({ allowed, answered: true }),
+      (err) => {
+        kernel.log.warn({ err, socket: s.id, channel: name }, 'ws re-authorisation could not be answered')
+        return { allowed: false, answered: false }
+      },
+    )
 
   /** fan a message out to every local socket subscribed to `name` */
   const toChannel = (name: string, msg: Record<string, unknown>, exceptSocket?: string) => {
-    for (const id of subscribers.get(name) ?? []) {
+    for (const id of [...(subscribers.get(name) ?? [])]) {
       if (id === exceptSocket) continue
       const s = sockets.get(id)
-      if (s) sendSeq(s, msg)
+      if (s) deliver(s, name, msg)
     }
   }
   const toUser = (userId: string, msg: Record<string, unknown>) => {
-    for (const id of byUser.get(userId) ?? []) {
-      const s = sockets.get(id)
-      if (s) sendSeq(s, msg)
-    }
+    for (const s of socketsOf(userId)) sendSeq(s, msg)
   }
 
   // ---- NATS fan-in: forward what other replicas and services publish ----
@@ -133,18 +207,36 @@ export function createGateway(opts: GatewayOptions): Gateway {
   }
 
   const presenceKey = (userId: string) => `presence:${userId}`
+  /**
+   * Presence is best-effort, so every call to it swallows its own failure.
+   *
+   * The first heartbeat after Valkey became unreachable used to reject with nobody listening, and
+   * an unhandled rejection ends the process — which `restart: unless-stopped` then turns into a
+   * crash loop for as long as Valkey is away. Nobody's chat should stop working because the
+   * green dot beside their name cannot be written.
+   */
+  const presenceFailed = (err: unknown, userId: string) =>
+    kernel.log.warn({ err, userId }, 'presence write failed; chat is unaffected')
   // The stored shape is what `readPresence` (chat module, `chat.presence.get`) parses: a bare status
   // string reads back as a plain "online" and loses both the chosen status and the last-seen time.
   const setPresence = async (userId: string, status: string) => {
-    await kernel.redis?.set(
-      presenceKey(userId),
-      JSON.stringify({ status, at: Date.now() }),
-      'EX',
-      env.PRESENCE_TTL_SEC,
-    )
+    try {
+      await kernel.redis?.set(
+        presenceKey(userId),
+        JSON.stringify({ status, at: Date.now() }),
+        'EX',
+        env.PRESENCE_TTL_SEC,
+      )
+    } catch (err) {
+      presenceFailed(err, userId)
+    }
   }
   const clearPresence = async (userId: string) => {
-    await kernel.redis?.del(presenceKey(userId))
+    try {
+      await kernel.redis?.del(presenceKey(userId))
+    } catch (err) {
+      presenceFailed(err, userId)
+    }
   }
   /** announce presence to every workspace the user is a member of */
   const broadcastPresence = (p: Principal, status: string) => {
@@ -168,6 +260,88 @@ export function createGateway(opts: GatewayOptions): Gateway {
     }
     return false
   }
+
+  // ---- revocation: a socket must stop delivering what its holder may no longer read ----
+
+  /** Ask again for this socket's subscriptions now, and drop the ones that no longer hold. */
+  async function revalidate(s: Socket, only?: (name: string) => boolean) {
+    for (const [name, sub] of [...s.channels]) {
+      if (name === chan.user(s.principal.userId ?? '')) continue
+      if (only && !only(name)) continue
+      const { allowed, answered } = await reauthorize(s, name)
+      if (s.channels.get(name) !== sub) continue
+      if (allowed) sub.checkedAt = Date.now()
+      else if (answered) revoke(s, name)
+      // could not say: leave it stale, so the next message on it asks again before delivering
+      else sub.checkedAt = 0
+    }
+  }
+
+  /**
+   * Mark subscriptions for a fresh answer without asking for one yet.
+   *
+   * `core.permissions.changed` can name every member of a workspace at once, and re-authorising all
+   * of their chat channels immediately would answer one role change with thousands of database
+   * reads. Expiring costs nothing: the next message on each channel pays for its own check, and a
+   * channel with no traffic has nothing to leak.
+   */
+  const expire = (s: Socket) => {
+    for (const sub of s.channels.values()) sub.checkedAt = 0
+  }
+
+  const revocationSubs: Array<() => void> = []
+  let stopped = false
+  /**
+   * Subscribe to a revocation signal.
+   *
+   * The durable is named for the gateway rather than left to default. `@kernhq/kernel` already
+   * takes a `core.permissions.changed` subscription under `<service>-core.permissions.changed`, and
+   * two pull consumers sharing one durable **load-balance** the stream — so a shared name would
+   * hand half the revocations to the kernel's cache invalidation and half to us, at random.
+   */
+  const onRevocation = (pattern: string, handler: (e: EventEnvelope) => Promise<void>) => {
+    kernel.events
+      .subscribe(pattern, handler, { durable: `${kernel.service}-gateway-${pattern}` })
+      .then((unsub) => (stopped ? unsub() : revocationSubs.push(unsub)))
+      .catch((err) => kernel.log.error({ err, pattern }, 'gateway could not subscribe to revocations'))
+  }
+
+  // Removed from the workspace. The socket's principal still carries the membership, so strip it
+  // first: `authorize` reads memberships and would otherwise go on saying yes from stale data.
+  onRevocation('core.member.removed', async (e) => {
+    const { workspaceId, userId } = (e.payload ?? {}) as { workspaceId?: string; userId?: string }
+    if (!workspaceId || !userId) return
+    for (const s of socketsOf(userId)) {
+      s.principal = {
+        ...s.principal,
+        memberships: s.principal.memberships.filter((m) => m.workspaceId !== workspaceId),
+      }
+      await revalidate(s)
+    }
+  })
+
+  // Removed from one channel. Cheap and exact: only that channel, only that person's sockets.
+  onRevocation('chat.channel.member_removed', async (e) => {
+    const { channelId, userId } = (e.payload ?? {}) as { channelId?: string; userId?: string }
+    if (!channelId || !userId) return
+    const name = chan.chat(channelId)
+    for (const s of socketsOf(userId)) await revalidate(s, (n) => n === name)
+  })
+
+  // A role, group or binding change can take away a private channel without touching membership.
+  onRevocation('core.permissions.changed', async (e) => {
+    const { workspaceId, userIds } = (e.payload ?? {}) as {
+      workspaceId?: string
+      userIds?: string[] | null
+    }
+    if (!workspaceId) return
+    const affected = userIds?.length
+      ? userIds.flatMap(socketsOf)
+      : [...sockets.values()].filter((s) =>
+          s.principal.memberships.some((m) => m.workspaceId === workspaceId),
+        )
+    for (const s of affected) expire(s)
+  })
 
   /**
    * Answer a `hello`, and publish the attempt as `s.authenticating`.
@@ -284,7 +458,7 @@ export function createGateway(opts: GatewayOptions): Gateway {
 
   function onClose(s: Socket) {
     sockets.delete(s.id)
-    for (const name of s.channels) {
+    for (const name of s.channels.keys()) {
       const set = subscribers.get(name)
       set?.delete(s.id)
       if (set && !set.size) subscribers.delete(name)
@@ -297,7 +471,7 @@ export function createGateway(opts: GatewayOptions): Gateway {
       byUser.delete(userId)
       // Last socket on this replica: mark offline. Another replica may still hold a socket for the
       // user, in which case its presence heartbeat restores the key within PRESENCE_TTL_SEC.
-      void clearPresence(userId)
+      void clearPresence(userId).catch((err) => presenceFailed(err, userId))
       broadcastPresence(s.principal, 'offline')
     }
   }
@@ -308,7 +482,7 @@ export function createGateway(opts: GatewayOptions): Gateway {
       ws,
       cookie: req?.headers.cookie ?? null,
       principal: ANONYMOUS,
-      channels: new Set(),
+      channels: new Map(),
       seq: 0,
       alive: true,
       missedPings: 0,
@@ -333,7 +507,10 @@ export function createGateway(opts: GatewayOptions): Gateway {
     ws.on('pong', () => {
       s.alive = true
       s.missedPings = 0
-      if (s.principal.userId) void setPresence(s.principal.userId, 'online')
+      // Nothing awaits this heartbeat, so it carries its own catch: an unhandled rejection here
+      // ends the process, and `restart: unless-stopped` re-runs the same failing heartbeat.
+      const userId = s.principal.userId
+      if (userId) void setPresence(userId, 'online').catch((err) => presenceFailed(err, userId))
     })
     ws.on('close', () => {
       clearTimeout(helloTimer)
@@ -372,8 +549,10 @@ export function createGateway(opts: GatewayOptions): Gateway {
     },
     stats: () => ({ sockets: sockets.size, users: byUser.size, subscriptions: subscribers.size }),
     async close() {
+      stopped = true
       clearInterval(heartbeat)
       for (const sub of natsSubs) sub.unsubscribe()
+      for (const unsub of revocationSubs.splice(0)) unsub()
       for (const s of sockets.values()) s.ws.close(1001, 'server shutting down')
       await new Promise<void>((done) => wss.close(() => done()))
     },

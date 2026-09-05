@@ -1,8 +1,11 @@
+import { installUnhandledRejectionGuard } from './guards.js'
 import { createChatService } from './service.js'
 
 const svc = await createChatService({ role: 'both' })
 const { kernel, app, gateway } = svc
 if (!app) throw new Error('chat service started without an HTTP server')
+
+installUnhandledRejectionGuard(kernel.log)
 
 await app.listen({ port: kernel.env.PORT, host: kernel.env.HOST })
 gateway?.attach(app.server)

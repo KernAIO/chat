@@ -4,6 +4,7 @@
  * These suites drive real sockets against a listening server. Principals come from the stubbed
  * `core.users.principal`, which is exactly the seam the gateway uses in production.
  */
+import { coreEvents } from '@kernhq/contracts/core'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
   connect,
@@ -208,6 +209,83 @@ describe('subscription authorisation', () => {
     await alice.api.messages.post({ workspaceId: ws, channelId: channel.id, body: doc('second') })
     await new Promise((r) => setTimeout(r, 150))
     expect(socket.received.slice(before).filter((m) => m.t === 'change')).toEqual([])
+  })
+})
+
+const isMessageChange = (m: Record<string, unknown>) =>
+  m.t === 'change' && (m.change as { entity?: string } | undefined)?.entity === 'message'
+
+describe('revocation', () => {
+  // A subscription used to be authorised once, at `sub` time, and never again — so somebody
+  // removed from a private channel, or from the workspace, kept reading every message posted
+  // afterwards on the socket they already held, for as long as the tab stayed open. HTTP refused
+  // them at once and the shell hid the channel, which is what made it invisible.
+
+  it('stops delivering a private channel to a member who was removed from it', async () => {
+    const channel = await alice.api.channels.create({
+      workspaceId: ws,
+      name: name('revoked-channel'),
+      type: 'private',
+      memberIds: [bob.id],
+    })
+    const socket = await track(connectAs(url, bob))
+    socket.send({ t: 'sub', channels: [`chat:${channel.id}`] })
+    await new Promise((r) => setTimeout(r, 50))
+    expect(socket.received.filter((m) => m.t === 'error')).toEqual([])
+
+    await alice.api.messages.post({ workspaceId: ws, channelId: channel.id, body: doc('while a member') })
+    await socket.next((m) => m.t === 'change' && (m.change as { entity: string }).entity === 'message')
+
+    await alice.api.channels.members.remove({ workspaceId: ws, channelId: channel.id, userId: bob.id })
+    const refusal = await socket.next<{ code: string; message: string }>(
+      (m) => m.t === 'error' && m.code === 'FORBIDDEN',
+    )
+    expect(refusal.message).toContain(channel.id)
+
+    await alice.api.messages.post({ workspaceId: ws, channelId: channel.id, body: doc('after removal') })
+    await new Promise((r) => setTimeout(r, 250))
+    expect(
+      JSON.stringify(socket.received),
+      'the plaintext of a message posted after the removal must never reach the socket',
+    ).not.toContain('after removal')
+    expect(socket.received.filter((m) => isMessageChange(m))).toHaveLength(1)
+  })
+
+  it('stops delivering a workspace and its channels to a member removed from the workspace', async () => {
+    const frank = chat.actor('Frank')
+    const channel = await alice.api.channels.create({
+      workspaceId: ws,
+      name: name('revoked-workspace'),
+      type: 'public',
+    })
+    const socket = await track(connectAs(url, frank)) // auto-subscribed to ws:<workspace>
+    socket.send({ t: 'sub', channels: [`chat:${channel.id}`] })
+    await new Promise((r) => setTimeout(r, 50))
+    await alice.api.messages.post({ workspaceId: ws, channelId: channel.id, body: doc('while a member') })
+    await socket.next((m) => m.t === 'change' && (m.change as { entity: string }).entity === 'message')
+
+    await chat.kernel.emit(
+      coreEvents.memberRemoved,
+      { workspaceId: ws as never, userId: frank.id as never },
+      { workspaceId: ws, actorId: alice.id },
+    )
+    const revoked = await socket.next<{ message: string }>(
+      (m) => m.t === 'error' && m.code === 'FORBIDDEN' && String(m.message).includes(`chat:${channel.id}`),
+    )
+    expect(revoked.message).toContain(channel.id)
+    expect(
+      socket.received.some((m) => m.t === 'error' && String(m.message).includes(`ws:${ws}`)),
+      'the workspace subscription goes with the membership',
+    ).toBe(true)
+
+    const orphan = '01920000-0000-7000-8000-00000000d003'
+    await alice.api.messages.post({ workspaceId: ws, channelId: channel.id, body: doc('after removal') })
+    await chat.kernel.realtime.change(ws, { module: 'chat', entity: 'channel', id: orphan, op: 'created' })
+    await new Promise((r) => setTimeout(r, 250))
+    const seen = JSON.stringify(socket.received)
+    expect(seen, 'no message posted after the removal may reach the socket').not.toContain('after removal')
+    expect(seen, 'nor anything published to the workspace').not.toContain(orphan)
+    expect(socket.received.filter((m) => isMessageChange(m))).toHaveLength(1)
   })
 })
 

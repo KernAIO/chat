@@ -24,6 +24,16 @@ export const ChatEnv = z.object({
   TYPING_THROTTLE_MS: z.coerce.number().int().default(2_000),
   /** maximum concurrent sockets per user (older ones are closed) */
   MAX_SOCKETS_PER_USER: z.coerce.number().int().default(12),
+  /**
+   * How long a subscription's authorisation is trusted before the gateway asks again.
+   *
+   * A revocation event (`core.member.removed`, `chat.channel.member_removed`,
+   * `core.permissions.changed`) drops or expires the subscription immediately, so this is not the
+   * normal path — it is the ceiling for anything no event reaches: a replica that did not receive
+   * the event, an access change nobody thought to publish. Lower it to shorten that ceiling at the
+   * cost of one `chat.channels.access` read per socket, per active chat channel, per interval.
+   */
+  WS_REAUTH_INTERVAL_MS: z.coerce.number().int().default(60_000),
 })
 export type ChatEnv = z.infer<typeof ChatEnv>
 
