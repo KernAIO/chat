@@ -5,22 +5,22 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@kernhq/kernel': ^0.10.2
-  '@kernhq/contracts': ^0.8.0
+  '@kernhq/kernel': ^0.10.5
+  '@kernhq/contracts': ^0.8.1
 
 importers:
 
   .:
     dependencies:
       '@kernhq/contracts':
-        specifier: ^0.8.0
-        version: 0.8.0
+        specifier: ^0.8.1
+        version: 0.8.1
       '@kernhq/kernel':
-        specifier: ^0.10.2
-        version: 0.10.2(ws@8.21.3)
+        specifier: ^0.10.5
+        version: 0.10.5(ws@8.21.3)
       '@kernhq/module-chat':
         specifier: ^0.6.0
-        version: 0.6.0(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.2(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)
+        version: 0.6.0(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.1)(@kernhq/kernel@0.10.5(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)
       dotenv:
         specifier: ^17.0.0
         version: 17.4.2
@@ -441,18 +441,18 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
-  '@kernhq/contracts@0.8.0':
-    resolution: {integrity: sha512-UcQE9tYnlrwahW7v3ilUvgJSaiLdrA6CaOfONGhUBqh2s7LStPUa9skeyfbGU6TWJPFhhlOi2nKp30HVpxnATg==}
+  '@kernhq/contracts@0.8.1':
+    resolution: {integrity: sha512-pFLdB67qZthtAsnWuDkuypIubYJUUIaU+/rBJM6zBupbhCTFJrqsod+y/XIRKJiLIS1dSvczJtswOFi+y/mj0g==}
 
-  '@kernhq/kernel@0.10.2':
-    resolution: {integrity: sha512-XNnexv0N82hZL4Xir0vMfTDxnmEReMgODMHryFpmeGoWVe/JDTL/DBlMdgL6f/z3YcqjRJFmUhrnKXgqfp817Q==}
+  '@kernhq/kernel@0.10.5':
+    resolution: {integrity: sha512-qd42n7+FALmPcIR72xCe7FG/WqJYfXmWIZ3FpBxJpcXxq2ur41mAR2hPWXimpv7H67ZVgMBDk9cYlF+CGIbeLQ==}
 
   '@kernhq/module-chat@0.6.0':
     resolution: {integrity: sha512-VfN1Tv+yC0bva9pif5cUnXofmXBpKSiTKm02/Da/KWr5HO1slZJ9to/GBcAJkZy1ZlJngIuetOG7KgSBMhHl+Q==}
     engines: {node: '>=24'}
     peerDependencies:
-      '@kernhq/contracts': ^0.8.0
-      '@kernhq/kernel': ^0.10.2
+      '@kernhq/contracts': ^0.8.1
+      '@kernhq/kernel': ^0.10.5
       '@kernhq/ui': ^0.14.0
       '@tanstack/svelte-query': ^6.1.0
       svelte: ^5.46.0
@@ -2628,21 +2628,21 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@kernhq/contracts@0.8.0':
+  '@kernhq/contracts@0.8.1':
     dependencies:
       '@orpc/contract': 1.15.0
       zod: 4.5.4
     transitivePeerDependencies:
       - '@opentelemetry/api'
 
-  '@kernhq/kernel@0.10.2(ws@8.21.3)':
+  '@kernhq/kernel@0.10.5(ws@8.21.3)':
     dependencies:
       '@aws-sdk/client-s3': 3.1115.0
       '@aws-sdk/s3-request-presigner': 3.1115.0
       '@fastify/cors': 11.3.0
       '@fastify/helmet': 13.1.1
       '@fastify/rate-limit': 10.3.0
-      '@kernhq/contracts': 0.8.0
+      '@kernhq/contracts': 0.8.1
       '@orpc/contract': 1.15.0
       '@orpc/openapi': 1.15.0(fastify@5.12.1)(ws@8.21.3)
       '@orpc/server': 1.15.0(fastify@5.12.1)(ws@8.21.3)
@@ -2692,10 +2692,10 @@ snapshots:
       - supports-color
       - ws
 
-  '@kernhq/module-chat@0.6.0(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.2(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)':
+  '@kernhq/module-chat@0.6.0(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.1)(@kernhq/kernel@0.10.5(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)':
     dependencies:
-      '@kernhq/contracts': 0.8.0
-      '@kernhq/kernel': 0.10.2(ws@8.21.3)
+      '@kernhq/contracts': 0.8.1
+      '@kernhq/kernel': 0.10.5(ws@8.21.3)
       '@kernhq/sdk': 0.1.9
       '@orpc/contract': 1.15.0
       '@orpc/server': 1.15.0(fastify@5.12.1)(ws@8.21.3)
@@ -2748,7 +2748,7 @@ snapshots:
 
   '@kernhq/sdk@0.1.9':
     dependencies:
-      '@kernhq/contracts': 0.8.0
+      '@kernhq/contracts': 0.8.1
       '@orpc/client': 1.15.0
       '@orpc/contract': 1.15.0
       zod: 4.5.4
