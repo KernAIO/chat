@@ -19,8 +19,8 @@ importers:
         specifier: ^0.10.2
         version: 0.10.2(ws@8.21.3)
       '@kernhq/module-chat':
-        specifier: ^0.5.1
-        version: 0.5.1(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.2(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)
+        specifier: ^0.6.0
+        version: 0.6.0(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.2(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)
       dotenv:
         specifier: ^17.0.0
         version: 17.4.2
@@ -447,8 +447,8 @@ packages:
   '@kernhq/kernel@0.10.2':
     resolution: {integrity: sha512-XNnexv0N82hZL4Xir0vMfTDxnmEReMgODMHryFpmeGoWVe/JDTL/DBlMdgL6f/z3YcqjRJFmUhrnKXgqfp817Q==}
 
-  '@kernhq/module-chat@0.5.1':
-    resolution: {integrity: sha512-+0bypeKUY1sTw6FUQJCfH9NbeituTCjzoGSkeO4cQJVdUdakb/mdk+jc7y0TBn7xNGdYIIRF398btNM7OAUG0A==}
+  '@kernhq/module-chat@0.6.0':
+    resolution: {integrity: sha512-VfN1Tv+yC0bva9pif5cUnXofmXBpKSiTKm02/Da/KWr5HO1slZJ9to/GBcAJkZy1ZlJngIuetOG7KgSBMhHl+Q==}
     engines: {node: '>=24'}
     peerDependencies:
       '@kernhq/contracts': ^0.8.0
@@ -2692,7 +2692,7 @@ snapshots:
       - supports-color
       - ws
 
-  '@kernhq/module-chat@0.5.1(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.2(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)':
+  '@kernhq/module-chat@0.6.0(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.2(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)':
     dependencies:
       '@kernhq/contracts': 0.8.0
       '@kernhq/kernel': 0.10.2(ws@8.21.3)
