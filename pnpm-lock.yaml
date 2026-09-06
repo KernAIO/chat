@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@kernhq/kernel': ^0.10.0
+  '@kernhq/kernel': ^0.10.2
   '@kernhq/contracts': ^0.8.0
 
 importers:
@@ -16,11 +16,11 @@ importers:
         specifier: ^0.8.0
         version: 0.8.0
       '@kernhq/kernel':
-        specifier: ^0.10.0
-        version: 0.10.0(ws@8.21.3)
+        specifier: ^0.10.2
+        version: 0.10.2(ws@8.21.3)
       '@kernhq/module-chat':
-        specifier: ^0.5.0
-        version: 0.5.0(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.0(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)
+        specifier: ^0.5.1
+        version: 0.5.1(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.2(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)
       dotenv:
         specifier: ^17.0.0
         version: 17.4.2
@@ -44,8 +44,8 @@ importers:
         specifier: ^2.5.0
         version: 2.5.11
       '@kernhq/testing':
-        specifier: ^0.1.12
-        version: 0.1.12(ws@8.21.3)
+        specifier: ^0.1.14
+        version: 0.1.14
       '@kernhq/tsconfig':
         specifier: ^0.1.1
         version: 0.1.1
@@ -444,15 +444,15 @@ packages:
   '@kernhq/contracts@0.8.0':
     resolution: {integrity: sha512-UcQE9tYnlrwahW7v3ilUvgJSaiLdrA6CaOfONGhUBqh2s7LStPUa9skeyfbGU6TWJPFhhlOi2nKp30HVpxnATg==}
 
-  '@kernhq/kernel@0.10.0':
-    resolution: {integrity: sha512-XjJU4JsYq54ASWd0KVdv3nOtM0Skf0iNENWpAFMgyYoVsA8CNqvT2Wr7Y4kl/j6HnZiw59ycjUdHSY+waSIs3w==}
+  '@kernhq/kernel@0.10.2':
+    resolution: {integrity: sha512-XNnexv0N82hZL4Xir0vMfTDxnmEReMgODMHryFpmeGoWVe/JDTL/DBlMdgL6f/z3YcqjRJFmUhrnKXgqfp817Q==}
 
-  '@kernhq/module-chat@0.5.0':
-    resolution: {integrity: sha512-aWTKZYD5v/LXbAXQQEc+WQdeoDRACPkDmsc+9jyhtc4OaEHay6MOxxdts/E1nTQA1unwkZlfHA3E83W9nPa2Dg==}
+  '@kernhq/module-chat@0.5.1':
+    resolution: {integrity: sha512-+0bypeKUY1sTw6FUQJCfH9NbeituTCjzoGSkeO4cQJVdUdakb/mdk+jc7y0TBn7xNGdYIIRF398btNM7OAUG0A==}
     engines: {node: '>=24'}
     peerDependencies:
       '@kernhq/contracts': ^0.8.0
-      '@kernhq/kernel': ^0.10.0
+      '@kernhq/kernel': ^0.10.2
       '@kernhq/ui': ^0.14.0
       '@tanstack/svelte-query': ^6.1.0
       svelte: ^5.46.0
@@ -467,8 +467,8 @@ packages:
   '@kernhq/sdk@0.1.9':
     resolution: {integrity: sha512-ATzEaXUbBy5OMqX34tc/JeOXQdR8yAvxTdIatnzpHLjYMdteaxeOyEmADOIZWtXo6uiURq7DWYtHCqWK2+XQSQ==}
 
-  '@kernhq/testing@0.1.12':
-    resolution: {integrity: sha512-7IoD6xLTsjRKRXz3iN0dxHvNvEA571tMVegPDqUeXzaTfXnHBtnmXRcC4Al4/Cuv7c99ZuGgN4VD9Ryz0i7UMw==}
+  '@kernhq/testing@0.1.14':
+    resolution: {integrity: sha512-DFgIeTogxuY2Pi9Qh9RlD7X3sMJKzcytuZr+eRT3foZ4IHydDwIOUFlDzCVFQOydw31ZJkMUrXLkX2UAUib8Ow==}
 
   '@kernhq/tsconfig@0.1.1':
     resolution: {integrity: sha512-dpsKywRORVpmPlvGBaBlzhhmsAJ8LY2MBj0T9fdo7mGVN7r6+DyYVs6yuLUc/YtV+Ll1riAGnQN/tpxKMb3vnA==}
@@ -2635,7 +2635,7 @@ snapshots:
     transitivePeerDependencies:
       - '@opentelemetry/api'
 
-  '@kernhq/kernel@0.10.0(ws@8.21.3)':
+  '@kernhq/kernel@0.10.2(ws@8.21.3)':
     dependencies:
       '@aws-sdk/client-s3': 3.1115.0
       '@aws-sdk/s3-request-presigner': 3.1115.0
@@ -2692,10 +2692,10 @@ snapshots:
       - supports-color
       - ws
 
-  '@kernhq/module-chat@0.5.0(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.0(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)':
+  '@kernhq/module-chat@0.5.1(@floating-ui/dom@1.8.0)(@kernhq/contracts@0.8.0)(@kernhq/kernel@0.10.2(ws@8.21.3))(fastify@5.12.1)(pg@8.23.0)(svelte@5.57.0)(ws@8.21.3)':
     dependencies:
       '@kernhq/contracts': 0.8.0
-      '@kernhq/kernel': 0.10.0(ws@8.21.3)
+      '@kernhq/kernel': 0.10.2(ws@8.21.3)
       '@kernhq/sdk': 0.1.9
       '@orpc/contract': 1.15.0
       '@orpc/server': 1.15.0(fastify@5.12.1)(ws@8.21.3)
@@ -2755,48 +2755,17 @@ snapshots:
     transitivePeerDependencies:
       - '@opentelemetry/api'
 
-  '@kernhq/testing@0.1.12(ws@8.21.3)':
+  '@kernhq/testing@0.1.14':
     dependencies:
-      '@kernhq/kernel': 0.10.0(ws@8.21.3)
       '@testcontainers/postgresql': 12.1.0
       pg: 8.23.0
       testcontainers: 12.1.0
     transitivePeerDependencies:
-      - '@aws-sdk/client-rds-data'
-      - '@cloudflare/workers-types'
-      - '@electric-sql/pglite'
-      - '@libsql/client'
-      - '@libsql/client-wasm'
-      - '@neondatabase/serverless'
-      - '@op-engineering/op-sqlite'
-      - '@opentelemetry/api'
-      - '@planetscale/database'
-      - '@prisma/client'
-      - '@tidbcloud/serverless'
-      - '@types/better-sqlite3'
-      - '@types/pg'
-      - '@types/sql.js'
-      - '@upstash/redis'
-      - '@vercel/postgres'
-      - '@xata.io/client'
       - bare-abort-controller
       - bare-buffer
-      - better-sqlite3
-      - bun-types
-      - crossws
-      - expo-sqlite
-      - gel
-      - knex
-      - kysely
-      - mysql2
       - pg-native
-      - postgres
-      - prisma
       - react-native-b4a
-      - sql.js
-      - sqlite3
       - supports-color
-      - ws
 
   '@kernhq/tsconfig@0.1.1': {}
 
