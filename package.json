@@ -19,9 +19,9 @@
     "smoke": "tsx scripts/ws-smoke.ts"
   },
   "dependencies": {
-    "@kernhq/contracts": "^0.8.1",
-    "@kernhq/kernel": "^0.10.5",
-    "@kernhq/module-chat": "^0.6.0",
+    "@kernhq/contracts": "^0.8.3",
+    "@kernhq/kernel": "^0.10.8",
+    "@kernhq/module-chat": "^0.6.2",
     "dotenv": "^17.0.0",
     "fastify": "^5.6.0",
     "ioredis": "^6.0.0",
@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
-    "@kernhq/testing": "^0.1.14",
+    "@kernhq/testing": "^0.1.15",
     "@kernhq/tsconfig": "^0.1.1",
     "@orpc/contract": "^1.15.0",
     "@orpc/server": "^1.15.0",
